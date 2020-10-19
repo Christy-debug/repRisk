@@ -195,7 +195,7 @@ public class CompanyMatchingServiceImpl implements CompanyMatchingService {
 	public static boolean isValid(String s) {
 		if (s.equalsIgnoreCase("The") || s.equalsIgnoreCase("Ltd") || s.equalsIgnoreCase("Private") ||
 				s.equalsIgnoreCase("New") ||s.equalsIgnoreCase("Group") || s.equalsIgnoreCase("Development") ||
-				 s.equalsIgnoreCase("Group")) {
+				 s.equalsIgnoreCase("Engineering")) {
 			return true;
 		} else
 			return false;
