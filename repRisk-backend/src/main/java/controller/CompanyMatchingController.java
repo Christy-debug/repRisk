@@ -15,15 +15,6 @@ import util.ResponseBody;
 
 
 public class CompanyMatchingController {
-//	@Autowired
-//	CompanyMatchingDelegate companyMatchingDelegate;
-	
-	
-
-
-//	@Autowired
-//	FilePath filePaths;
-
 	
 	public static void main(String[] args) {
 		FilePath filePaths = new FilePath();
