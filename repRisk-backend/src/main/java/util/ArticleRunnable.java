@@ -84,7 +84,6 @@ public class ArticleRunnable implements Callable<Set<String>> {
 	} catch (Exception e) {
 		e.printStackTrace();
 	}
-	System.out.println("Completed");
 	return companyInArticle;
 		
 	}
