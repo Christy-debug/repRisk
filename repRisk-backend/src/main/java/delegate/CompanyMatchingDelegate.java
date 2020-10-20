@@ -1,5 +1,6 @@
 package delegate;
 
+import java.io.IOException;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +12,7 @@ public class CompanyMatchingDelegate {
 	@Autowired
 	CompanyMatchingService companyMatchingService ;
 
-	public Set<String>	getCompaniesInArticle(String xml,String csv){
+	public Set<String>	getCompaniesInArticle(String xml,String csv) throws Exception{
 		System.out.println("Inside delegate");
 		CompanyMatchingServiceImpl companyMatchingService = new CompanyMatchingServiceImpl();
 		return companyMatchingService.getCompanyInArticle(xml, csv);

@@ -41,8 +41,9 @@ public class ArticleRunnable implements Callable<Set<String>> {
  * Get all Companies present in all  XML
  * @param xmlFile
  * @return Set of companies present in  XML
+ * @throws Exception 
  */
-	private Set<String> getCompaniesInArticles(File xmlFile) {
+	private Set<String> getCompaniesInArticles(File xmlFile) throws Exception {
 		Set<String> companyInArticle = new HashSet<>();
 		try {
 			
@@ -83,6 +84,7 @@ public class ArticleRunnable implements Callable<Set<String>> {
 		}
 	} catch (Exception e) {
 		e.printStackTrace();
+		throw e;
 	}
 	return companyInArticle;
 		

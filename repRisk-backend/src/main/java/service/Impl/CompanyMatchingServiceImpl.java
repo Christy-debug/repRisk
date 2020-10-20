@@ -31,42 +31,48 @@ import util.FilePath;
 public class CompanyMatchingServiceImpl implements CompanyMatchingService {
 
 	Set<Future<Set<String>>> ListOfCompanyInArticle = new HashSet<>();
-	
 
 	Set<String> companyNameSet = new HashSet<>();
 
-	public Set<String> getCompanyInArticle(String xml, String csv) {
+	public Set<String> getCompanyInArticle(String xml, String csv) throws Exception {
 
 		Set<String> companyList = getCompanyNamesFromCsv(csv);
-
-		Set<String> companyNameSet = callingThreads(companyList, xml);
-       //ll companies present in articles are written to the file in the given file path
+		if (null != companyList && !companyList.isEmpty()) {
+			companyNameSet = callingThreads(companyList, xml);
+		}
+		// ll companies present in articles are written to the file in the given file
+		// path
 		try {
 			FilePath filePath = new FilePath();
 			Files.write(Paths.get(filePath.companies_in_article_path), companyNameSet);
 
 		} catch (IOException e) {
-			System.out.println("Unable to write out names");
+			throw e;
+			// System.out.println("Unable to write out names");
 		}
 		return companyNameSet;
 
 	}
-	
+
 	/**
 	 * Calling multiple threads to get the list of companies present in XML files
+	 * 
 	 * @param companyList
 	 * @param xml
 	 * @return list of companies in all articles
+	 * @throws InterruptedException
+	 * @throws ExecutionException
 	 */
 
-	private Set<String> callingThreads(Set<String> companyList, String xml) {
+	private Set<String> callingThreads(Set<String> companyList, String xml)
+			throws InterruptedException, ExecutionException {
 
-		final int MAX_T = 50; // Thread count
+		final int MAX_T = FilePath.MAX_T; // Thread count
 		ExecutorService executor = Executors.newFixedThreadPool(MAX_T);
 		File folder = new File(xml);
 
 		File[] files = folder.listFiles();
-		//iterate over all xml files
+		// iterate over all xml files
 		for (File xmlFile : files) {
 			Callable<Set<String>> callable = new ArticleRunnable(companyList, xmlFile);
 
@@ -74,14 +80,16 @@ public class CompanyMatchingServiceImpl implements CompanyMatchingService {
 
 			ListOfCompanyInArticle.add(future);
 		}
-           //iterate over all thread result and add to the Set companyNameSet
+		// iterate over all thread result and add to the Set companyNameSet
 		for (Future<Set<String>> s : ListOfCompanyInArticle) {
 			try {
 				companyNameSet.addAll(s.get());
 			} catch (InterruptedException e) {
 				e.printStackTrace();
+				throw e;
 			} catch (ExecutionException e) {
 				e.printStackTrace();
+				throw e;
 			}
 		}
 		// pool shutdown
@@ -91,10 +99,12 @@ public class CompanyMatchingServiceImpl implements CompanyMatchingService {
 
 	/**
 	 * Get all company names from CSV file
+	 * 
 	 * @param csv
 	 * @return list of all companies from csv file (including abbrevation name)
+	 * @throws Exception
 	 */
-	private static Set<String> getCompanyNamesFromCsv(String csv) {
+	private static Set<String> getCompanyNamesFromCsv(String csv) throws Exception {
 		Set<String> companyNamesList = new HashSet<>();
 		try {
 			System.out.println("Inside getCompanyNamesFromCsv");
@@ -110,7 +120,7 @@ public class CompanyMatchingServiceImpl implements CompanyMatchingService {
 
 				string = formatQuotedName(string);
 
-				string = formatString(string);
+				string = getDataInBracket(string);
 
 				String[] names_list = string.split(";", 5);
 				for (String name : names_list) {
@@ -125,14 +135,16 @@ public class CompanyMatchingServiceImpl implements CompanyMatchingService {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			throw e;
 		}
 		return companyNamesList;
 	}
 
-	
 	static Pattern numeric_pattern = Pattern.compile("-?\\d+(\\.\\d+)?");
+
 	/**
 	 * To check whether a string is numeric or lenght less than 3
+	 * 
 	 * @param strNum
 	 * @return false if string is numeric
 	 */
@@ -147,14 +159,14 @@ public class CompanyMatchingServiceImpl implements CompanyMatchingService {
 
 	static Pattern extra_names_pattern = Pattern.compile("\\(([^)]*)\\)$");
 	static CountryNames countryNamesObj = new CountryNames();
-	
-	
-/**
- * Format the given string to get the data given in () at the end
- * @param string
- * @return string with all data in () append to the string after ";"
- */
-	static String formatString(String string) {
+
+	/**
+	 * Format the given string to get the data given in () at the end
+	 * 
+	 * @param string
+	 * @return string with all data in () append to the string after ";"
+	 */
+	static String getDataInBracket(String string) {
 		String extra_names = new String();
 		Matcher matcher = extra_names_pattern.matcher(string);
 		if (matcher.find()) {
@@ -163,20 +175,22 @@ public class CompanyMatchingServiceImpl implements CompanyMatchingService {
 
 			string = string.replaceAll("\\(([^)]*)\\)$", "");
 			string = string.trim();
-			string = formatString(string);
+			string = getDataInBracket(string);
 
 		}
 
 		return string + extra_names;
 	}
 
-	
 	static Pattern quoted_names_pattern = Pattern.compile("\"(([^\"])*)\"");
-/**
- * format the string which is given in between "" and avoid common company abbrevations like "OOO","ZAO" 
- * @param string
- * @return 
- */
+
+	/**
+	 * format the string which is given in between "" and avoid common company
+	 * abbrevations like "OOO","ZAO"
+	 * 
+	 * @param string
+	 * @return
+	 */
 	static String formatQuotedName(String string) {
 		String[] extra_names = new String[2];
 		Matcher matcher = quoted_names_pattern.matcher(string);
@@ -187,15 +201,17 @@ public class CompanyMatchingServiceImpl implements CompanyMatchingService {
 		} else
 			return string;
 	}
-/**
- * Check whether company name is valid 
- * @param s
- * @return return if string is invalid
- */
+
+	/**
+	 * Check whether company name is valid
+	 * 
+	 * @param s
+	 * @return return if string is invalid
+	 */
 	public static boolean isValid(String s) {
-		if (s.equalsIgnoreCase("The") || s.equalsIgnoreCase("Ltd") || s.equalsIgnoreCase("Private") ||
-				s.equalsIgnoreCase("New") ||s.equalsIgnoreCase("Group") || s.equalsIgnoreCase("Development") ||
-				 s.equalsIgnoreCase("Engineering")) {
+		if (s.equalsIgnoreCase("The") || s.equalsIgnoreCase("Ltd") || s.equalsIgnoreCase("Private")
+				|| s.equalsIgnoreCase("New") || s.equalsIgnoreCase("Group") || s.equalsIgnoreCase("Development")
+				|| s.equalsIgnoreCase("Engineering")) {
 			return true;
 		} else
 			return false;
