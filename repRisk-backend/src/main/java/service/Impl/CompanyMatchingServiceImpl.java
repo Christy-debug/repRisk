@@ -107,7 +107,6 @@ public class CompanyMatchingServiceImpl implements CompanyMatchingService {
 	private static Set<String> getCompanyNamesFromCsv(String csv) throws Exception {
 		Set<String> companyNamesList = new HashSet<>();
 		try {
-			System.out.println("Inside getCompanyNamesFromCsv");
 
 			FileReader filereader = new FileReader(csv);
 			CSVReader csvReader = new CSVReaderBuilder(filereader).withSkipLines(1).build();

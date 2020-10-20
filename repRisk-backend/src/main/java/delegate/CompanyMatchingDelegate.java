@@ -13,7 +13,6 @@ public class CompanyMatchingDelegate {
 	CompanyMatchingService companyMatchingService ;
 
 	public Set<String>	getCompaniesInArticle(String xml,String csv) throws Exception{
-		System.out.println("Inside delegate");
 		CompanyMatchingServiceImpl companyMatchingService = new CompanyMatchingServiceImpl();
 		return companyMatchingService.getCompanyInArticle(xml, csv);
 	}
